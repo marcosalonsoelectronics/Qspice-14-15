@@ -1,0 +1,40 @@
+ÿØÿÛ«symbol imotor
+  «type: X»
+  «description: Induction motor with cage rotor»
+  «library file: |.subckt im as as1 bs bs1 cs cs1 te tload nrev wm thetam theta\n.param Msr=2*Lm/3\nRas as N06 Rs\nBasbs N05 N04 V=-0.5*Msr*ddt(I(Lbs))\nBascs N04 N03 V=-0.5*Msr*ddt(I(Lcs))\nBasar N03 N02 V=Msr*cos(V(theta))*ddt(I(Lar))\nBasbr N02 N01 V=Msr*cos(V(theta)+2*pi/3)*ddt(I(Lbr))\nBascr N01 as1 V=Msr*cos(V(theta)-2*pi/3)*ddt(I(Lcr))\nRbs bs N12 Rs\nBbsas N11 N10 V=-0.5*Msr*ddt(I(Las))\nBbscs N10 N09 V=-0.5*Msr*ddt(I(Lcs))\nBbsar N09 N08 V=Msr*cos(V(theta)-2*pi/3)*ddt(I(Lar))\nBbsbr N08 N07 V=Msr*cos(V(theta))*ddt(I(Lbr))\nBbscr N07 bs1 V=Msr*cos(V(theta)+2*pi/3)*ddt(I(Lcr))\nRcs cs N18 Rs\nBcsas N17 N16 V=-0.5*Msr*ddt(I(Las))\nBcsbs N16 N15 V=-0.5*Msr*ddt(I(Lbs))\nBcsar N15 N14 V=Msr*cos(V(theta)+2*pi/3)*ddt(I(Lar))\nBcsbr N14 N13 V=Msr*cos(V(theta)-2*pi/3)*ddt(I(Lbr))\nBcscr N13 cs1 V=Msr*cos(V(theta))*ddt(I(Lcr))\nRar 0 N22 Rr\nBarbr x1 x2 V=-0.5*Msr*ddt(I(Lbr))\nBarcr x2 N21 V=-0.5*Msr*ddt(I(Lcr))\nBaras N21 N20 V=Msr*cos(V(theta))*ddt(I(Las))\nBarbs N20 N19 V=Msr*cos(V(theta)-2*pi/3)*ddt(I(Lbs))\nBarcs N19 0 V=Msr*cos(V(theta)+2*pi/3)*ddt(I(Lcs))\nRbr 0 N28 Rr\nBbrar N27 N26 V=-0.5*Msr*ddt(I(Lar))\nBbrcr N26 N25 V=-0.5*Msr*ddt(I(Lcr))\nBbras N25 N24 V=Msr*cos(V(theta)+2*pi/3)*ddt(I(Las))\nBbrbs N24 N23 V=Msr*cos(V(theta))*ddt(I(Lbs))\nBbrcs N23 0 V=Msr*cos(V(theta)-2*pi/3)*ddt(I(Lcs))\nRcr 0 N34 Rr\nBcrar N33 N32 V=-0.5*Msr*ddt(I(Lar))\nBcrbr N32 N31 V=-0.5*Msr*ddt(I(Lbr))\nBcras N31 N30 V=Msr*cos(V(theta)-2*pi/3)*ddt(I(Las))\nBcrbs N30 N29 V=Msr*cos(V(theta)+2*pi/3)*ddt(I(Lbs))\nBcrcs N29 0 V=Msr*cos(V(theta))*ddt(I(Lcs))\nLar N22 x1 Lr+Msr\nLbr N28 N27 Lr+Msr\nLcr N34 N33 Lr+Msr\nLas N06 N05 Ls+Msr\nLbs N12 N11 Ls+Msr\nLcs N18 N17 Ls+Msr\nBphia Phia 0 V=idt(V(as) - Rs*I(Las) )\nBphib Phib 0 V=idt(V(bs) - Rs*I(Lbs) )\nBphic Phic 0 V=idt(V(cs) - Rs*I(Lcs) )\nBphialpha Phialpha 0 V= (2/3)*V(Phia) - V(Phib)/3 - V(Phic)/3\nBphibeta Phibeta 0 V= (sqrt(3)/3)*V(Phib) - (sqrt(3)/3)*V(Phic)\nBialpha Ialpha 0 V= (2/3)*I(Las) - I(Lbs)/3 - I(Lcs)/3\nBibeta Ibeta 0 V= (sqrt(3)/3)*I(Lbs) - (sqrt(3)/3)*I(Lcs)\nBte N35 0 V=(3/2)*Npp*( V(Phialpha)*V(Ibeta) - V(phibeta)*V(Ialpha) )\nR1 N35 Te 1\nC1 Te 0 tau\nVto To 0 To\n.subckt X1•Subtract3 pos1 neg2 neg3 out\nB1 out 0 V=V(pos1)-V(neg2)-V(neg3)\n.ends Subtract3\nX1 Te To Tload N36 X1•SUBTRACT3\n.subckt X3•integrator in reset out\nB1 out 0 V=idt(V(in),ic,V(reset))\n.ends integrator\nX3 N37 0 N38 X3•INTEGRATOR IC=0\n.subckt X4•subtract pos neg error\nE1 error 0 pos neg 1\n.ends subtract\nX4 N38 N39 N40 X4•SUBTRACT\n.subckt X6•integrator in reset out\nB1 out 0 V=idt(V(in),ic,V(reset))\n.ends integrator\nX6 wm 0 thetam X6•INTEGRATOR IC=0\n.subckt X5•gain in out\nB1 out 0 V=A*V(in)\n.ends gain\nX5 thetam N39 X5•GAIN A=Bv/J\n.subckt X7•gain in out\nB1 out 0 V=A*V(in)\n.ends gain\nX7 wm nrev X7•GAIN A=60/(2*pi)\n.subckt X2•gain in out\nB1 out 0 V=A*V(in)\n.ends gain\nX2 N36 N37 X2•GAIN A=1/J\n.subckt X8•abs in out\nB1 out 0 V=abs(V(in))\n.ends abs\nX8 N40 wm X8•ABS\n.subckt X11•gain in out\nB1 out 0 V=A*V(in)\n.ends gain\nX11 thetam theta X11•GAIN A=Npp\n.ends im»
+  «shorted pins: false»
+  «line (0,0) (400,0) 0 0 0x1000000 -1 -1»
+  «line (-200,-400) (-300,-550) 0 0 0x1000000 -1 -1»
+  «line (-300,-550) (300,-550) 0 0 0x1000000 -1 -1»
+  «line (200,-400) (300,-550) 0 0 0x1000000 -1 -1»
+  «line (-1100,-700) (0,0) 0 0 0x1000000 -1 -1»
+  «rect (-1100,-800) (1100,800) 0 0 0 0xff0000 0x4000000 -1 0 -1»
+  «ellipse (-450,450) (450,-450) 0 0 0 0x1000000 0x1000000 -1 -1»
+  «ellipse (-400,400) (400,-400) 0 0 0 0x1000000 0x1000000 -1 -1»
+  «ellipse (-50,50) (50,-50) 0 0 0 0x1000000 0x1000000 -1 -1»
+  «text (-950,900) 1 15 0 0x1000000 -1 -1 "X1"»
+  «text (900,900) 1 15 0 0x1000000 -1 -1 "IM"»
+  «text (0,650) 1 0 1 0x1000000 -1 -1 "INDUCTION MOTOR"»
+  «text (-700,-950) 1 0 0 0x0 -1 -1 "Npp=2"»
+  «text (-600,-1150) 1 0 0 0x0 -1 -1 "Rs=0.163"»
+  «text (-550,-1350) 1 0 0 0x0 -1 -1 "Ls=2.103m"»
+  «text (-600,-1550) 1 0 0 0x0 -1 -1 "Lr=2.92m"»
+  «text (-700,-1750) 1 0 0 0x0 -1 -1 "Rr=1.0"»
+  «text (-500,-1950) 1 0 0 0x0 -1 -1 "Lm=50.05m"»
+  «text (-750,-2350) 1 0 0 0x0 -1 -1 "J=0.1"»
+  «text (-650,-2550) 1 0 0 0x0 -1 -1 "Bv=0.01"»
+  «text (-650,-2750) 1 0 0 0x0 -1 -1 "Tau=0.1"»
+  «text (-750,-2150) 1 0 0 0x0 -1 -1 "To=0"»
+  «pin (-1100,600) (30,0) 1 7 0 0x0 -1 "as"»
+  «pin (-1100,400) (30,0) 1 7 0 0x0 -1 "as1"»
+  «pin (-1100,200) (30,0) 1 7 0 0x0 -1 "bs"»
+  «pin (-1100,0) (30,0) 1 7 0 0x0 -1 "bs1"»
+  «pin (-1100,-200) (30,0) 1 7 0 0x0 -1 "cs"»
+  «pin (-1100,-400) (30,0) 1 7 0 0x0 -1 "cs1"»
+  «pin (1100,400) (-30,0) 1 11 0 0x0 -1 "te"»
+  «pin (-1100,-700) (70,0) 1 7 0 0x0 -1 "tload"»
+  «pin (1100,200) (-30,0) 1 11 0 0x0 -1 "nrev"»
+  «pin (1100,0) (-30,0) 1 11 0 0x0 -1 "wm"»
+  «pin (1100,-200) (-30,0) 1 11 0 0x0 -1 "thetam"»
+  «pin (1100,-400) (-30,0) 1 11 0 0x0 -1 "theta"»
+»

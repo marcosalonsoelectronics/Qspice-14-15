@@ -1,0 +1,7 @@
+IM model parameters:
+
+.param Npp=2 Rs=0.163 Ls=2.103m Lr=2.92m Rr=1.0 Lm=50.05m
+.param Msr=2*Lm/3
+.param J=0.1 Bv=0.01
+.param tau=0.1
+

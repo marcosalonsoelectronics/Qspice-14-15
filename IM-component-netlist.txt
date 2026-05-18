@@ -1,0 +1,92 @@
+.subckt im as as1 bs bs1 cs cs1 te tload nrev wm thetam theta
+.param Msr=2*Lm/3
+Ras as N06 Rs
+Basbs N05 N04 V=-0.5*Msr*ddt(I(Lbs))
+Bascs N04 N03 V=-0.5*Msr*ddt(I(Lcs))
+Basar N03 N02 V=Msr*cos(V(theta))*ddt(I(Lar))
+Basbr N02 N01 V=Msr*cos(V(theta)+2*pi/3)*ddt(I(Lbr))
+Bascr N01 as1 V=Msr*cos(V(theta)-2*pi/3)*ddt(I(Lcr))
+Rbs bs N12 Rs
+Bbsas N11 N10 V=-0.5*Msr*ddt(I(Las))
+Bbscs N10 N09 V=-0.5*Msr*ddt(I(Lcs))
+Bbsar N09 N08 V=Msr*cos(V(theta)-2*pi/3)*ddt(I(Lar))
+Bbsbr N08 N07 V=Msr*cos(V(theta))*ddt(I(Lbr))
+Bbscr N07 bs1 V=Msr*cos(V(theta)+2*pi/3)*ddt(I(Lcr))
+Rcs cs N18 Rs
+Bcsas N17 N16 V=-0.5*Msr*ddt(I(Las))
+Bcsbs N16 N15 V=-0.5*Msr*ddt(I(Lbs))
+Bcsar N15 N14 V=Msr*cos(V(theta)+2*pi/3)*ddt(I(Lar))
+Bcsbr N14 N13 V=Msr*cos(V(theta)-2*pi/3)*ddt(I(Lbr))
+Bcscr N13 cs1 V=Msr*cos(V(theta))*ddt(I(Lcr))
+Rar 0 N22 Rr
+Barbr x1 x2 V=-0.5*Msr*ddt(I(Lbr))
+Barcr x2 N21 V=-0.5*Msr*ddt(I(Lcr))
+Baras N21 N20 V=Msr*cos(V(theta))*ddt(I(Las))
+Barbs N20 N19 V=Msr*cos(V(theta)-2*pi/3)*ddt(I(Lbs))
+Barcs N19 0 V=Msr*cos(V(theta)+2*pi/3)*ddt(I(Lcs))
+Rbr 0 N28 Rr
+Bbrar N27 N26 V=-0.5*Msr*ddt(I(Lar))
+Bbrcr N26 N25 V=-0.5*Msr*ddt(I(Lcr))
+Bbras N25 N24 V=Msr*cos(V(theta)+2*pi/3)*ddt(I(Las))
+Bbrbs N24 N23 V=Msr*cos(V(theta))*ddt(I(Lbs))
+Bbrcs N23 0 V=Msr*cos(V(theta)-2*pi/3)*ddt(I(Lcs))
+Rcr 0 N34 Rr
+Bcrar N33 N32 V=-0.5*Msr*ddt(I(Lar))
+Bcrbr N32 N31 V=-0.5*Msr*ddt(I(Lbr))
+Bcras N31 N30 V=Msr*cos(V(theta)-2*pi/3)*ddt(I(Las))
+Bcrbs N30 N29 V=Msr*cos(V(theta)+2*pi/3)*ddt(I(Lbs))
+Bcrcs N29 0 V=Msr*cos(V(theta))*ddt(I(Lcs))
+Lar N22 x1 Lr+Msr
+Lbr N28 N27 Lr+Msr
+Lcr N34 N33 Lr+Msr
+Las N06 N05 Ls+Msr
+Lbs N12 N11 Ls+Msr
+Lcs N18 N17 Ls+Msr
+Bphia Phia 0 V=idt(V(as) - Rs*I(Las) )
+Bphib Phib 0 V=idt(V(bs) - Rs*I(Lbs) )
+Bphic Phic 0 V=idt(V(cs) - Rs*I(Lcs) )
+Bphialpha Phialpha 0 V= (2/3)*V(Phia) - V(Phib)/3 - V(Phic)/3
+Bphibeta Phibeta 0 V= (sqrt(3)/3)*V(Phib) - (sqrt(3)/3)*V(Phic)
+Bialpha Ialpha 0 V= (2/3)*I(Las) - I(Lbs)/3 - I(Lcs)/3
+Bibeta Ibeta 0 V= (sqrt(3)/3)*I(Lbs) - (sqrt(3)/3)*I(Lcs)
+Bte N35 0 V=(3/2)*Npp*( V(Phialpha)*V(Ibeta) - V(phibeta)*V(Ialpha) )
+R1 N35 Te 1
+C1 Te 0 tau
+Vto To 0 To
+.subckt X1•Subtract3 pos1 neg2 neg3 out
+B1 out 0 V=V(pos1)-V(neg2)-V(neg3)
+.ends Subtract3
+X1 Te To Tload N36 X1•SUBTRACT3
+.subckt X3•integrator in reset out
+B1 out 0 V=idt(V(in),ic,V(reset))
+.ends integrator
+X3 N37 0 N38 X3•INTEGRATOR IC=0
+.subckt X4•subtract pos neg error
+E1 error 0 pos neg 1
+.ends subtract
+X4 N38 N39 N40 X4•SUBTRACT
+.subckt X6•integrator in reset out
+B1 out 0 V=idt(V(in),ic,V(reset))
+.ends integrator
+X6 wm 0 thetam X6•INTEGRATOR IC=0
+.subckt X5•gain in out 
+B1 out 0 V=A*V(in)
+.ends gain
+X5 thetam N39 X5•GAIN A=Bv/J
+.subckt X7•gain in out 
+B1 out 0 V=A*V(in)
+.ends gain
+X7 wm nrev X7•GAIN A=60/(2*pi)
+.subckt X2•gain in out 
+B1 out 0 V=A*V(in)
+.ends gain
+X2 N36 N37 X2•GAIN A=1/J
+.subckt X8•abs in out
+B1 out 0 V=abs(V(in))
+.ends abs
+X8 N40 wm X8•ABS
+.subckt X11•gain in out 
+B1 out 0 V=A*V(in)
+.ends gain
+X11 thetam theta X11•GAIN A=Npp
+.ends im
